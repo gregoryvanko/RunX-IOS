@@ -17,6 +17,8 @@ nonisolated struct User: Codable, Equatable, Identifiable {
     var username: String
     var displayName: String
     var role: String
+    // Administrateur principal (ADMIN_LOGIN) : son compte ne peut pas être supprimé
+    var isMainAdmin: Bool?
     var lastLoginAt: Date?
     var target: Target?
     var createdAt: Date?

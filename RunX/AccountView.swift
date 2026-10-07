@@ -10,6 +10,10 @@ struct AccountView: View {
     @State private var pwdError = ""
     @State private var savingName = false
     @State private var savingPwd = false
+    @State private var deletePwd = ""
+    @State private var deleteError = ""
+    @State private var confirmDelete = false
+    @State private var deleting = false
 
     var body: some View {
         Screen {
@@ -25,8 +29,43 @@ struct AccountView: View {
                 passwordCard
             }
             serverCard
+            deleteCard
         }
         .onAppear { name = session.user?.displayName ?? "" }
+        .alert("Supprimer mon compte", isPresented: $confirmDelete) {
+            Button("Supprimer définitivement", role: .destructive, action: deleteAccount)
+            Button("Annuler", role: .cancel) {}
+        } message: {
+            Text("Votre compte, toutes vos courses et votre objectif seront supprimés définitivement. Cette action est irréversible.")
+        }
+    }
+
+    private var deleteCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            SectionTitle("Supprimer mon compte")
+            if session.isMainAdmin {
+                // Le compte administrateur principal est protégé par le serveur
+                Text("Votre compte est le compte administrateur principal : il est protégé et ne peut pas être supprimé.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.rxGrey)
+            } else {
+                Text("Supprime définitivement votre compte et toutes vos données (courses, objectif). Vos autres appareils seront déconnectés.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.rxGrey)
+                LabeledField(label: "Mot de passe") {
+                    RXTextField(placeholder: "", text: $deletePwd, secure: true).textContentType(.password)
+                }
+                ErrorText(message: deleteError)
+                Button("Supprimer mon compte") {
+                    deleteError = ""
+                    if deletePwd.isEmpty { deleteError = "Saisissez votre mot de passe pour confirmer"; return }
+                    confirmDelete = true
+                }
+                .buttonStyle(.rx(.dangerSolid))
+                .disabled(deleting)
+            }
+        }
+        .card(padding: 14)
     }
 
     private var profileCard: some View {
@@ -101,6 +140,19 @@ struct AccountView: View {
                 current = ""; next = ""; confirm = ""
                 session.show("Mot de passe modifié")
             } catch { pwdError = error.localizedDescription }
+        }
+    }
+
+    private func deleteAccount() {
+        guard let api = session.api, !session.isMainAdmin else { return }
+        deleting = true
+        Task {
+            defer { deleting = false }
+            do {
+                try await api.deleteAccount(password: deletePwd)
+                session.accountDeleted()
+            } catch is CancellationError {
+            } catch { deleteError = error.localizedDescription }
         }
     }
 }

@@ -54,6 +54,7 @@ final class AppSession {
     private(set) var api: APIClient?
 
     var isAdmin: Bool { user?.isAdmin ?? false }
+    var isMainAdmin: Bool { user?.isMainAdmin ?? false }
     var serverDisplay: String { api?.baseURL.absoluteString ?? CredentialStore.server ?? "" }
 
     // ---------- Démarrage : reconnexion avec les valeurs enregistrées ----------
@@ -144,6 +145,13 @@ final class AppSession {
         CredentialStore.token = res.token
         CredentialStore.password = newPassword
         user = res.user
+    }
+
+    // Compte supprimé : plus rien à pré-remplir sur l'écran de connexion
+    func accountDeleted() {
+        CredentialStore.username = nil
+        endSession()
+        show("Compte supprimé")
     }
 
     // ---------- Navigation ----------

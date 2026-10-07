@@ -133,6 +133,12 @@ final class APIClient {
         return try await request("PUT", "/me/password", body: Body(currentPassword: current, newPassword: new))
     }
 
+    // Suppression définitive de son propre compte et de toutes ses données
+    func deleteAccount(password: String) async throws {
+        struct Body: Encodable { var password: String }
+        try await requestVoid("DELETE", "/me", body: Body(password: password))
+    }
+
     func setTarget(_ target: RunInput) async throws -> User {
         (try await request("PUT", "/me/target", body: target) as UserResponse).user
     }
