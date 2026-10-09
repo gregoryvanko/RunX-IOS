@@ -3,7 +3,7 @@ import SwiftUI
 // Écran de connexion : serveur, identifiant, mot de passe (ou création de compte)
 struct LoginView: View {
     @Environment(AppSession.self) private var session
-    @State private var server = CredentialStore.server ?? ""
+    @State private var server = CredentialStore.server ?? "runx.vanko.be"
     @State private var username = CredentialStore.username ?? ""
     @State private var password = CredentialStore.password ?? ""
     @State private var displayName = ""
